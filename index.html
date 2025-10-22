@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title> pica.pat</title>
+<meta name="description" content="Pica.pat - یک ربات زرد بامزه که چشم‌هاش واکنش‌پذیره. ساعت و دما رو هم نشون میده.">
+<meta name="robots" content="index, follow">
+<!-- Structured Data for SEO -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "name": "pica.pat",
+  "url": "https://pica.pat",
+  "description": "یک ربات زرد بامزه که چشم‌هاش واکنش‌پذیره. ساعت و دما رو هم نشون میده."
+}
+</script>
+<style>
+/* ---------- Variables ---------- */
+:root {
+  --bg: #ffd94d;
+  --bg-2: #ffef8a;
+  --panel: #fffef6;
+  --glass: rgba(255,255,255,0.85);
+  --glass-2: rgba(255,255,255,0.6);
+  --black: #000;
+  --shadow: 0 10px 30px rgba(0,0,0,0.12);
+  --radius: 28px;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+}
+/* ---------- Base ---------- */
+html,body{height:100%;margin:0}
+body{
+  display:flex;align-items:center;justify-content:center;
+  background:
+    radial-gradient(circle at 30% 30%, #fff6b3 0%, transparent 20%),
+    radial-gradient(circle at 70% 70%, #fff0a8 0%, transparent 20%),
+    linear-gradient(180deg,var(--bg-2),var(--bg));
+  overflow:hidden;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;
+  position:relative;
+}
+.glow{position:absolute;inset:0;filter:blur(40px);opacity:0.08;pointer-events:none;}
+.container{width:min(920px,92vw);margin:28px;display:flex;justify-content:center;align-items:center;gap:24px;position:relative;z-index:1;}
+.robot{
+  width:480px;max-width:92vw;height:320px;border-radius:var(--radius);
+  background:linear-gradient(180deg,#fff7b5,#ffd54d);
+  box-shadow:var(--shadow);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:22px;position:relative;
+}
+.hint{font-size:13px;color:rgba(26,26,26,0.54);margin-top:10px;transition:opacity .5s ease;}
+.eyes{width:100%;display:flex;justify-content:center;gap:48px;align-items:center;}
+.eye-wrap{width:120px;height:120px;display:flex;align-items:center;justify-content:center;cursor:pointer;user-select:none;position:relative;}
+.eye-svg{width:100px;height:100px;display:block;transition:transform .25s ease;}
+.pupil{transition:transform .18s ease;}
+.eye.normal .pupil{transform:translateY(0) scale(1);}
+.eye.wink .pupil{transform:translateY(20px) scale(.12);}
+.eye.hearts .pupil{opacity:0;}
+.eye.hearts .hearts{opacity:1;transform:scale(1);}
+.eye.surprised .pupil{transform:translateY(0) scale(1.6);transition:transform .14s ease;}
+.eye.sleepy .pupil{transform:translateY(-6px) scale(.6);opacity:.7;}
+.hearts{position:absolute;width:36px;height:36px;opacity:0;transform:scale(.6);transition:all .25s ease;}
+.eye-glow{position:absolute;width:140px;height:140px;border-radius:50%;filter:blur(12px);opacity:.08;pointer-events:none;}
+.mode-label{font-size:13px;color:rgba(27,27,27,.52);margin-top:6px;}
+.desktop-toggle{position:absolute;top:16px;left:16px;width:46px;height:46px;border-radius:50%;background:rgba(255,255,255,.9);display:flex;align-items:center;justify-content:center;box-shadow:0 6px 18px rgba(0,0,0,.12);border:1px solid rgba(0,0,0,.06);cursor:pointer;z-index:40;transition:transform .15s ease;}
+.desktop-toggle:active{transform:scale(.98);}
+.desktop-toggle svg{stroke:var(--black);width:22px;height:22px;}
+.side-menu{position:fixed;left:0;top:0;height:100vh;width:300px;transform:translateX(-340px);transition:transform .33s cubic-bezier(.2,.9,.2,1);z-index:39;padding:20px;display:flex;flex-direction:column;gap:18px;background:linear-gradient(180deg,var(--panel),#fff);box-shadow:6px 12px 36px rgba(0,0,0,.12);border-top-right-radius:22px;border-bottom-right-radius:22px;}
+.side-menu.open{transform:translateX(0);}
+.menu-title{font-weight:700;font-size:18px;margin-bottom:6px;}
+.menu-card{background:#fffaf0;padding:12px;border-radius:12px;box-shadow:0 6px 14px rgba(0,0,0,.06);}
+.menu-label{font-size:12px;color:#555;text-transform:uppercase;letter-spacing:1px;}
+.menu-big{font-size:20px;font-weight:700;margin-top:6px;}
+.menu-row{display:flex;gap:8px;align-items:center;margin-top:8px;}
+.btn{padding:8px 12px;border-radius:10px;cursor:pointer;border:1px solid rgba(0,0,0,.06);background:#000;color:#fff;font-weight:600;}
+.btn.ghost{background:transparent;color:#111;border:1px solid rgba(0,0,0,.08);}
+.mobile-top{position:fixed;top:14px;left:50%;transform:translateX(-50%);z-index:45;background:var(--glass-2);padding:8px 12px;border-radius:999px;box-shadow:0 8px 22px rgba(0,0,0,.08);display:flex;gap:10px;align-items:center;font-weight:600;font-size:14px;}
+.mobile-toggle{position:fixed;bottom:18px;right:18px;z-index:45;width:56px;height:56px;border-radius:999px;background:rgba(0,0,0,.9);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;cursor:pointer;box-shadow:0 10px 30px rgba(0,0,0,.18);}
+.bottom-sheet{position:fixed;left:0;right:0;bottom:-420px;height:360px;border-top-left-radius:18px;border-top-right-radius:18px;background:linear-gradient(180deg,#fff,#fffaf2);box-shadow:0 -12px 34px rgba(0,0,0,.12);transition:bottom .28s cubic-bezier(.2,.9,.2,1);z-index:44;padding:18px;display:flex;flex-direction:column;gap:12px;}
+.bottom-sheet.open{bottom:0;}
+@media(max-width:1023px){.desktop-toggle,.side-menu{display:none;}}
+@media(min-width:1024px){.mobile-top,.mobile-toggle,.bottom-sheet{display:none;}}
+@media(max-width:520px){.eyes{gap:18px;}.eye-wrap{width:100px;height:100px;}.robot{padding:16px;height:280px;}}
+</style>
+</head>
+<body>
+<div class="glow"></div>
+<button class="desktop-toggle" id="desktopToggle" title="Open menu">
+  <svg viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <polyline points="9 18 15 12 9 6"></polyline>
+  </svg>
+</button>
+<aside class="side-menu" id="sideMenu" aria-hidden="true">
+  <div class="menu-title">Menu</div>
+  <div class="menu-card"><div class="menu-label">Time</div><div class="menu-big" id="timeText">--:--:--</div></div>
+  <div class="menu-card"><div class="menu-label">Temperature</div><div class="menu-big" id="tempText">—</div></div>
+  <div class="menu-card">
+    <div class="menu-label">Cuteness</div>
+    <div class="menu-row"><button class="btn" id="playBtn">Play</button><button class="btn ghost" id="surpriseBtn">Surprise</button></div>
+    <div style="margin-top:8px;font-size:12px;color:#5a5a5a">Click or tap the eyes to make them react.</div>
+  </div>
+</aside>
+
+<div class="container">
+  <main class="robot">
+    <div class="eyes" id="eyesRow">
+      <div class="eye-wrap" data-side="left">
+        <div class="eye-glow" style="background:radial-gradient(circle,#fff9d6 0%,transparent 40%);"></div>
+        <svg class="eye-svg eye normal" viewBox="0 0 100 100" role="img" aria-label="Left eye">
+          <rect x="6" y="18" rx="22" ry="22" width="88" height="64" fill="#000"/>
+          <g class="pupil" transform="translate(50,50)"><circle r="18" fill="#000"/></g>
+          <g class="hearts" transform="translate(50,50)" opacity="0">
+            <path d="M0 -6 C -6 -18 -26 -16 -26 -2 C -26 10 -8 18 0 26 C 8 18 26 10 26 -2 C 26 -16 6 -18 0 -6 z" fill="#000" transform="scale(.45) translate(-10,-6)"/>
+          </g>
+        </svg>
+      </div>
+      <div class="eye-wrap" data-side="right">
+        <div class="eye-glow" style="background:radial-gradient(circle,#fff9d6 0%,transparent 40%);"></div>
+        <svg class="eye-svg eye normal" viewBox="0 0 100 100" role="img" aria-label="Right eye">
+          <rect x="6" y="18" rx="22" ry="22" width="88" height="64" fill="#000"/>
+          <g class="pupil" transform="translate(50,50)"><circle r="18" fill="#000"/></g>
+          <g class="hearts" transform="translate(50,50)" opacity="0">
+            <path d="M0 -6 C -6 -18 -26 -16 -26 -2 C -26 10 -8 18 0 26 C 8 18 26 10 26 -2 C 26 -16 6 -18 0 -6 z" fill="#000" transform="scale(.45) translate(-10,-6)"/>
+          </g>
+        </svg>
+      </div>
+    </div>
+    <div class="hint">Click the eyes to play — Time and temp shown in menu</div>
+    <div style="margin-top:10px;font-size:13px;color:#222">Mode: <span id="modeLabel" style="font-weight:700">Normal</span></div>
+  </main>
+</div>
+
+<div class="mobile-top" id="mobileTop">
+  <div id="mobileTime">--:--</
+<div id="mobileTemp">—</div>
+</div>
+
+<div class="mobile-toggle" id="mobileToggle">☰</div>
+
+<div class="bottom-sheet" id="bottomSheet" aria-hidden="true">
+  <div style="width:40px;height:4px;background:#ddd;margin:0 auto;border-radius:999px"></div>
+  <div style="font-weight:700;font-size:16px">Menu</div>
+  <div style="display:flex;flex-direction:column;gap:8px">
+    <div style="background:#fff7e3;padding:12px;border-radius:12px">
+      <div style="font-size:11px;color:#666;text-transform:uppercase">Time</div>
+      <div style="font-weight:800;font-size:18px" id="mobileTimeBig">--:--:--</div>
+    </div>
+    <div style="background:#fff7e3;padding:12px;border-radius:12px">
+      <div style="font-size:11px;color:#666;text-transform:uppercase">Temperature</div>
+      <div style="font-weight:800;font-size:18px" id="mobileTempBig">—</div>
+    </div>
+    <div style="background:#fff7e3;padding:12px;border-radius:12px">
+      <div style="font-size:11px;color:#666;text-transform:uppercase">Cuteness</div>
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <button class="btn" id="mobPlay">Play</button>
+        <button class="btn ghost" id="mobSurprise">Surprise</button>
+      </div>
+      <div style="margin-top:8px;font-size:12px;color:#666">Tap the eyes too — they're reactive!</div>
+    </div>
+  </div>
+</div>
+
+<audio id="eyeSound" src="https://freesound.org/data/previews/256/256113_3263906-lq.mp3" preload="auto"></audio>
+
+<script>
+// ---------- Variables ----------
+const eyeModes=['normal','wink','hearts','surprised','sleepy'];
+const eyeModeNames=['Normal','Wink','Hearts','Surprised','Sleepy'];
+let modeIndex=0;
+
+const sideMenu=document.getElementById('sideMenu');
+const desktopToggle=document.getElementById('desktopToggle');
+const playBtn=document.getElementById('playBtn');
+const surpriseBtn=document.getElementById('surpriseBtn');
+const mobPlay=document.getElementById('mobPlay');
+const mobSurprise=document.getElementById('mobSurprise');
+const modeLabel=document.getElementById('modeLabel');
+const eyeWraps=document.querySelectorAll('.eye-wrap');
+const timeText=document.getElementById('timeText');
+const timeMobile=document.getElementById('mobileTime');
+const timeMobileBig=document.getElementById('mobileTimeBig');
+const tempText=document.getElementById('tempText');
+const mobileTemp=document.getElementById('mobileTemp');
+const mobileTempBig=document.getElementById('mobileTempBig');
+const mobileToggle=document.getElementById('mobileToggle');
+const bottomSheet=document.getElementById('bottomSheet');
+const eyeSound=document.getElementById('eyeSound');
+
+// ---------- Clock ----------
+function updateClock(){
+  const now=new Date();
+  const hh=String(now.getHours()).padStart(2,'0');
+  const mm=String(now.getMinutes()).padStart(2,'0');
+  const ss=String(now.getSeconds()).padStart(2,'0');
+  const timeStr=`${hh}:${mm}:${ss}`;
+  timeText.textContent=timeStr;
+  timeMobile.textContent=`${hh}:${mm}`;
+  timeMobileBig.textContent=timeStr;
+}
+updateClock();
+setInterval(updateClock,1000);
+
+// ---------- Temperature ----------
+function showTemp(val){
+  const t=val===null?'—':val+'°C';
+  tempText.textContent=t;
+  mobileTemp.textContent=t;
+  mobileTempBig.textContent=t;
+}
+function fetchTempByGeo(){
+  if(!navigator.geolocation) return showTemp(null);
+  navigator.geolocation.getCurrentPosition(async pos=>{
+    const lat=pos.coords.latitude, lon=pos.coords.longitude;
+    try{
+      const res=await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&temperature_unit=celsius`);
+      const data=await res.json();
+      showTemp(data?.current_weather?.temperature?Math.round(data.current_weather.temperature):null);
+    }catch(e){showTemp(null);}
+  },()=>showTemp(null),{timeout:8000});
+}
+fetchTempByGeo();
+setInterval(fetchTempByGeo,10*60*1000);
+
+// ---------- Eye Functions ----------
+function setEyes(idx){
+  modeIndex=idx%eyeModes.length;
+  const mode=eyeModes[modeIndex];
+  modeLabel.textContent=eyeModeNames[modeIndex];
+  document.querySelectorAll('.eye-svg').forEach(svg=>{
+    svg.classList.remove(...eyeModes);
+    svg.classList.add(mode);
+    const hearts=svg.querySelector('.hearts');
+    if(hearts){
+      hearts.style.opacity=mode==='hearts'?'1':'0';
+      hearts.style.transform=mode==='hearts'?'scale(1)':'scale(.6)';
+    }
+  });
+}
+setEyes(0);
+function nextEye(){setEyes(modeIndex+1);}
+function randomEye(){setEyes(Math.floor(Math.random()*eyeModes.length));}
+function flashWobble(){
+  document.querySelectorAll('.eye-svg').forEach(svg=>{
+    svg.style.transform='translateY(-6px) rotate(-1deg)';
+    setTimeout(()=>svg.style.transform='',260);
+  });
+}
+function playSound(){eyeSound.currentTime=0;eyeSound.play();}
+
+// ---------- Hint ----------
+const hintEl=document.querySelector('.hint');
+let hintTimer=null;
+function hideHint(){
+  if(hintEl) hintEl.style.opacity='0';
+  if(hintTimer) clearTimeout(hintTimer);
+  hintTimer=setTimeout(()=>hintEl.style.opacity='1',15000);
+}
+
+// ---------- Event Listeners ----------
+eyeWraps.forEach(w=>{
+  w.addEventListener('click', ()=>{nextEye(); playSound(); hideHint();});
+  w.addEventListener('keydown', e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault(); nextEye(); playSound(); hideHint();}});
+});
+playBtn.addEventListener('click', ()=>{nextEye(); flashWobble(); playSound();});
+mobPlay.addEventListener('click', ()=>{nextEye(); flashWobble(); playSound();});
+surpriseBtn.addEventListener('click', ()=>{randomEye(); flashWobble(); playSound();});
+mobSurprise.addEventListener('click', ()=>{randomEye(); flashWobble(); playSound();});
+
+desktopToggle.addEventListener('click', ()=>{const open=sideMenu.classList.toggle('open');sideMenu.setAttribute('aria-hidden',String(!open));});
+mobileToggle.addEventListener('click', ()=>{const open=bottomSheet.classList.toggle('open');bottomSheet.setAttribute('aria-hidden',String(!open));});
+document.getElementById('mobileTop').addEventListener('click', ()=>{updateClock(); fetchTempByGeo();});
+
+window.addEventListener('click', (e)=>{
+  if(bottomSheet.classList.contains('open') && !bottomSheet.contains(e.target) && !mobileToggle.contains(e.target)){
+    bottomSheet.classList.remove('open');
+    bottomSheet.setAttribute('aria-hidden','true');
+  }
+});
+
+// ---------- Responsive ----------
+function adaptUI(){desktopToggle.style.display=window.innerWidth>=1024?'flex':'none';}
+adaptUI();
+window.addEventListener('resize', adaptUI);
+</script>
+</body>
+</html>
