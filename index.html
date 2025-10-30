@@ -18,8 +18,179 @@
 }
 </script>
 <style>
-/* ---------- Variables ---------- */
-:root {
+  /* ✅ منوی موبایل قابل اسکرول */
+.mobile-drawer,
+.bottom-sheet {
+  position: fixed;
+  inset: auto 0 0 0; /* از پایین باز بشه */
+  max-height: 80vh; /* حداکثر ۸۰٪ ارتفاع صفحه */
+  overflow-y: auto; /* 👈 اجازه اسکرول */
+  overscroll-behavior: contain; /* جلوگیری از اسکرول کل صفحه */
+  -webkit-overflow-scrolling: touch; /* اسکرول نرم در iOS */
+  background: #fff;
+  border-top-left-radius: 20px;
+  border-top-right-radius: 20px;
+  box-shadow: 0 -6px 24px rgba(0, 0, 0, 0.15);
+  padding: 20px 16px 40px;
+  transform: translateY(100%);
+  transition: transform 0.3s ease;
+  z-index: 2000;
+}
+
+.mobile-drawer.open,
+.bottom-sheet.open {
+  transform: translateY(0);
+}
+
+/* وقتی منو بازه، اسکرول بدنه قفل بشه */
+body.menu-open {
+  overflow: hidden;
+}
+
+  .chat-bubble {
+  position: absolute;
+  top: -80px;
+  background: #fff;
+  color: #333;
+  font-size: 14px;
+  padding: 10px 16px;
+  border-radius: 18px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+  opacity: 0;
+  transform: translateY(10px);
+  transition: all 0.35s cubic-bezier(.2,.9,.2,1);
+  pointer-events: none;
+  white-space: nowrap;
+  z-index: 3;
+  }
+  .chat-bubble.show {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* ---------- Variables ---------- */
+  :root {
+    --bg: #ffd94d;
+    --bg-2: #ffef8a;
+    --panel: #fffef6;
+    --glass: rgba(255,255,255,0.85);
+    --glass-2: rgba(255,255,255,0.6);
+    --black: #000;
+    --shadow: 0 10px 30px rgba(0,0,0,0.12);
+    --radius: 28px;
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  }
+
+  /* Night mode overrides (will be toggled by JS) */
+  :root.night {
+    --bg: #1e293b;
+    --bg-2: #0f1724;
+    --panel: #0b1220;
+    --glass: rgba(255,255,255,0.04);
+    --glass-2: rgba(255,255,255,0.03);
+    --black: #fff;
+    --shadow: 0 10px 30px rgba(0,0,0,0.4);
+  }
+
+  /* ---------- Base ---------- */
+  html,body{height:100%;margin:0}
+  body{
+    display:flex;align-items:center;justify-content:center;
+    background:
+      radial-gradient(circle at 30% 30%, #fff6b3 0%, transparent 20%),
+      radial-gradient(circle at 70% 70%, #fff0a8 0%, transparent 20%),
+      linear-gradient(180deg,var(--bg-2),var(--bg));
+    overflow:hidden;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;
+    position:relative;
+    transition: background 0.6s ease, color .4s;
+  }
+  :root.night body{
+    background:
+      radial-gradient(circle at 30% 30%, rgba(255,255,255,0.02) 0%, transparent 20%),
+      radial-gradient(circle at 70% 70%, rgba(255,255,255,0.01) 0%, transparent 20%),
+      linear-gradient(180deg,var(--bg-2),var(--bg));
+  }
+  .glow{position:absolute;inset:0;filter:blur(40px);opacity:0.08;pointer-events:none;}
+  .container{width:min(920px,92vw);margin:28px;display:flex;justify-content:center;align-items:center;gap:24px;position:relative;z-index:1;}
+  .robot{
+    width:480px;max-width:92vw;height:320px;border-radius:var(--radius);
+    background:linear-gradient(180deg,#fff7b5,#ffd54d);
+    box-shadow:var(--shadow);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    padding:22px;position:relative;
+    transition: background 0.6s ease;
+  }
+  :root.night .robot{
+    background: linear-gradient(180deg,#16202a,#0f1724);
+  }
+  .hint{font-size:13px;color:rgba(26,26,26,0.54);margin-top:10px;transition:opacity .5s ease;color:var(--black);}
+  .eyes{width:100%;display:flex;justify-content:center;gap:48px;align-items:center;position:relative;}
+  .eye-wrap{width:120px;height:120px;display:flex;align-items:center;justify-content:center;cursor:pointer;user-select:none;position:relative;}
+  .eye-svg{width:100px;height:100px;display:block;transition:transform .25s ease;}
+  .pupil{transition:transform .18s ease;}
+  .eye.normal .pupil{transform:translateY(0) scale(1);}
+  .eye.wink .pupil{transform:translateY(20px) scale(.12);}
+  .eye.hearts .pupil{opacity:0;}
+  .eye.hearts .hearts{opacity:1;transform:scale(1);}
+  .eye.surprised .pupil{transform:translateY(0) scale(1.6);transition:transform .14s ease;}
+  .eye.sleepy .pupil{transform:translateY(-6px) scale(.6);opacity:.7;}
+  .hearts{position:absolute;width:36px;height:36px;opacity:0;transform:scale(.6);transition:all .25s ease;}
+  .eye-glow{position:absolute;width:140px;height:140px;border-radius:50%;filter:blur(12px);opacity:.08;pointer-events:none;}
+  .mode-label{font-size:13px;color:rgba(27,27,27,.52);margin-top:6px;}
+  .desktop-toggle{position:absolute;top:16px;left:16px;width:46px;height:46px;border-radius:50%;background:rgba(255,255,255,.9);display:flex;align-items:center;justify-content:center;box-shadow:0 6px 18px rgba(0,0,0,.12);border:1px solid rgba(0,0,0,.06);cursor:pointer;z-index:40;transition:transform .15s ease;}
+  .desktop-toggle:active{transform:scale(.98);}
+  .desktop-toggle svg{stroke:var(--black);width:22px;height:22px;}
+  .side-menu{position:fixed;left:0;top:0;height:100vh;width:300px;transform:translateX(-340px);transition:transform .33s cubic-bezier(.2,.9,.2,1);z-index:39;padding:20px;display:flex;flex-direction:column;gap:18px;background:linear-gradient(180deg,var(--panel),#fff);box-shadow:6px 12px 36px rgba(0,0,0,.12);border-top-right-radius:22px;border-bottom-right-radius:22px;}
+  :root.night .side-menu{ background: linear-gradient(180deg,var(--panel),#071023); color: #fff;}
+  .side-menu.open{transform:translateX(0);}
+  .menu-title{font-weight:700;font-size:18px;margin-bottom:6px;}
+  .menu-card{background:#fffaf0;padding:12px;border-radius:12px;box-shadow:0 6px 14px rgba(0,0,0,.06);}
+  :root.night .menu-card { background: rgba(255,255,255,0.02); box-shadow:none;}
+  .menu-label{font-size:12px;color:#555;text-transform:uppercase;letter-spacing:1px;}
+  .menu-big{font-size:20px;font-weight:700;margin-top:6px;}
+  .menu-row{display:flex;gap:8px;align-items:center;margin-top:8px;}
+  .btn{padding:8px 12px;border-radius:10px;cursor:pointer;border:1px solid rgba(0,0,0,.06);background:#000;color:#fff;font-weight:600;}
+  .btn.ghost{background:transparent;color:#111;border:1px solid rgba(0,0,0,.08);}
+  .mobile-top{position:fixed;top:14px;left:50%;transform:translateX(-50%);z-index:45;background:var(--glass-2);padding:8px 12px;border-radius:999px;box-shadow:0 8px 22px rgba(0,0,0,.08);display:flex;gap:10px;align-items:center;font-weight:600;font-size:14px;}
+  .mobile-toggle{position:fixed;bottom:18px;right:18px;z-index:45;width:56px;height:56px;border-radius:999px;background:rgba(0,0,0,.9);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;cursor:pointer;box-shadow:0 10px 30px rgba(0,0,0,.18);}
+  .bottom-sheet{position:fixed;left:0;right:0;bottom:-420px;height:360px;border-top-left-radius:18px;border-top-right-radius:18px;background:linear-gradient(180deg,#fff,#fffaf2);box-shadow:0 -12px 34px rgba(0,0,0,.12);transition:bottom .28s cubic-bezier(.2,.9,.2,1);z-index:44;padding:18px;display:flex;flex-direction:column;gap:12px;}
+  .bottom-sheet.open{bottom:0;}
+  /* battery bar */
+  .battery {
+    width: 70px;
+    height: 14px;
+    border-radius: 4px;
+    border: 2px solid rgba(0,0,0,0.12);
+    display:inline-block;
+    position:relative;
+    background: #fff;
+    overflow:hidden;
+  }
+  :root.night .battery{ border-color: rgba(255,255,255,0.12); background: rgba(255,255,255,0.02); }
+  .battery::after {
+    content: "";
+    position: absolute;
+    right: -8px;
+    top: 3px;
+    width: 6px;
+    height: 8px;
+    border-radius:2px;
+    background: rgba(0,0,0,0.12);
+  }
+  .battery-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg,#4ade80,#16a34a);
+    transition: width 0.4s ease, background 0.3s;
+  }
+  .battery-percent { display:inline-block; margin-left:8px; font-weight:700; }
+
+  @media(max-width:1023px){.desktop-toggle,.side-menu{display:none;} .mobile-top{display:flex}}
+  @media(min-width:1024px){.mobile-top,.mobile-toggle,.bottom-sheet{display:none}}
+  @media(max-width:520px){.eyes{gap:18px;}.eye-wrap{width:100px;height:100px;}.robot{padding:16px;height:280px;}}
+
+  /* ----- Force always-yellow theme (override night-mode) ----- */
+:root.night {
   --bg: #ffd94d;
   --bg-2: #ffef8a;
   --panel: #fffef6;
@@ -27,62 +198,28 @@
   --glass-2: rgba(255,255,255,0.6);
   --black: #000;
   --shadow: 0 10px 30px rgba(0,0,0,0.12);
-  --radius: 28px;
-  font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
 }
-/* ---------- Base ---------- */
-html,body{height:100%;margin:0}
-body{
-  display:flex;align-items:center;justify-content:center;
+
+/* ensure body bg stays the yellow gradient even if .night class exists */
+:root.night body{
   background:
     radial-gradient(circle at 30% 30%, #fff6b3 0%, transparent 20%),
     radial-gradient(circle at 70% 70%, #fff0a8 0%, transparent 20%),
-    linear-gradient(180deg,var(--bg-2),var(--bg));
-  overflow:hidden;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;
-  position:relative;
+    linear-gradient(180deg,var(--bg-2),var(--bg)) !important;
 }
-.glow{position:absolute;inset:0;filter:blur(40px);opacity:0.08;pointer-events:none;}
-.container{width:min(920px,92vw);margin:28px;display:flex;justify-content:center;align-items:center;gap:24px;position:relative;z-index:1;}
-.robot{
-  width:480px;max-width:92vw;height:320px;border-radius:var(--radius);
-  background:linear-gradient(180deg,#fff7b5,#ffd54d);
-  box-shadow:var(--shadow);
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
-  padding:22px;position:relative;
+
+/* ensure robot keeps the yellow gradient */
+:root.night .robot{
+  background: linear-gradient(180deg,#fff7b5,#ffd54d) !important;
 }
-.hint{font-size:13px;color:rgba(26,26,26,0.54);margin-top:10px;transition:opacity .5s ease;}
-.eyes{width:100%;display:flex;justify-content:center;gap:48px;align-items:center;}
-.eye-wrap{width:120px;height:120px;display:flex;align-items:center;justify-content:center;cursor:pointer;user-select:none;position:relative;}
-.eye-svg{width:100px;height:100px;display:block;transition:transform .25s ease;}
-.pupil{transition:transform .18s ease;}
-.eye.normal .pupil{transform:translateY(0) scale(1);}
-.eye.wink .pupil{transform:translateY(20px) scale(.12);}
-.eye.hearts .pupil{opacity:0;}
-.eye.hearts .hearts{opacity:1;transform:scale(1);}
-.eye.surprised .pupil{transform:translateY(0) scale(1.6);transition:transform .14s ease;}
-.eye.sleepy .pupil{transform:translateY(-6px) scale(.6);opacity:.7;}
-.hearts{position:absolute;width:36px;height:36px;opacity:0;transform:scale(.6);transition:all .25s ease;}
-.eye-glow{position:absolute;width:140px;height:140px;border-radius:50%;filter:blur(12px);opacity:.08;pointer-events:none;}
-.mode-label{font-size:13px;color:rgba(27,27,27,.52);margin-top:6px;}
-.desktop-toggle{position:absolute;top:16px;left:16px;width:46px;height:46px;border-radius:50%;background:rgba(255,255,255,.9);display:flex;align-items:center;justify-content:center;box-shadow:0 6px 18px rgba(0,0,0,.12);border:1px solid rgba(0,0,0,.06);cursor:pointer;z-index:40;transition:transform .15s ease;}
-.desktop-toggle:active{transform:scale(.98);}
-.desktop-toggle svg{stroke:var(--black);width:22px;height:22px;}
-.side-menu{position:fixed;left:0;top:0;height:100vh;width:300px;transform:translateX(-340px);transition:transform .33s cubic-bezier(.2,.9,.2,1);z-index:39;padding:20px;display:flex;flex-direction:column;gap:18px;background:linear-gradient(180deg,var(--panel),#fff);box-shadow:6px 12px 36px rgba(0,0,0,.12);border-top-right-radius:22px;border-bottom-right-radius:22px;}
-.side-menu.open{transform:translateX(0);}
-.menu-title{font-weight:700;font-size:18px;margin-bottom:6px;}
-.menu-card{background:#fffaf0;padding:12px;border-radius:12px;box-shadow:0 6px 14px rgba(0,0,0,.06);}
-.menu-label{font-size:12px;color:#555;text-transform:uppercase;letter-spacing:1px;}
-.menu-big{font-size:20px;font-weight:700;margin-top:6px;}
-.menu-row{display:flex;gap:8px;align-items:center;margin-top:8px;}
-.btn{padding:8px 12px;border-radius:10px;cursor:pointer;border:1px solid rgba(0,0,0,.06);background:#000;color:#fff;font-weight:600;}
-.btn.ghost{background:transparent;color:#111;border:1px solid rgba(0,0,0,.08);}
-.mobile-top{position:fixed;top:14px;left:50%;transform:translateX(-50%);z-index:45;background:var(--glass-2);padding:8px 12px;border-radius:999px;box-shadow:0 8px 22px rgba(0,0,0,.08);display:flex;gap:10px;align-items:center;font-weight:600;font-size:14px;}
-.mobile-toggle{position:fixed;bottom:18px;right:18px;z-index:45;width:56px;height:56px;border-radius:999px;background:rgba(0,0,0,.9);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;cursor:pointer;box-shadow:0 10px 30px rgba(0,0,0,.18);}
-.bottom-sheet{position:fixed;left:0;right:0;bottom:-420px;height:360px;border-top-left-radius:18px;border-top-right-radius:18px;background:linear-gradient(180deg,#fff,#fffaf2);box-shadow:0 -12px 34px rgba(0,0,0,.12);transition:bottom .28s cubic-bezier(.2,.9,.2,1);z-index:44;padding:18px;display:flex;flex-direction:column;gap:12px;}
-.bottom-sheet.open{bottom:0;}
-@media(max-width:1023px){.desktop-toggle,.side-menu{display:none;}}
-@media(min-width:1024px){.mobile-top,.mobile-toggle,.bottom-sheet{display:none;}}
-@media(max-width:520px){.eyes{gap:18px;}.eye-wrap{width:100px;height:100px;}.robot{padding:16px;height:280px;}}
+
+/* ensure side menu / cards stay light (optional) */
+:root.night .side-menu,
+:root.night .menu-card {
+  background: linear-gradient(180deg,var(--panel),#fff) !important;
+  color: inherit;
+}
+
 </style>
 </head>
 <body>
@@ -94,19 +231,53 @@ body{
 </button>
 <aside class="side-menu" id="sideMenu" aria-hidden="true">
   <div class="menu-title">Menu</div>
+
   <div class="menu-card"><div class="menu-label">Time</div><div class="menu-big" id="timeText">--:--:--</div></div>
   <div class="menu-card"><div class="menu-label">Temperature</div><div class="menu-big" id="tempText">—</div></div>
+
+  <div class="menu-card">
+    <div class="menu-label">Date</div>
+    <div class="menu-big" id="dateText">—</div>
+  </div>
+
+  <div class="menu-card">
+    <div class="menu-label">Location</div>
+    <div class="menu-big" id="locationText">—</div>
+  </div>
+
+  <div class="menu-card">
+    <div class="menu-label">Weather</div>
+    <div class="menu-big" id="weatherText">—</div>
+  </div>
+
+  <div class="menu-card">
+    <div class="menu-label">Battery</div>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <div class="battery" aria-hidden="true"><div id="batteryFill" class="battery-fill"></div></div>
+      <div class="battery-percent" id="batteryText">—</div>
+    </div>
+  </div>
+
+  <div class="menu-card">
+    <div class="menu-label">Voice</div>
+    <div class="menu-row"><button class="btn" id="voiceBtn">Listen</button><div id="voiceStatus" style="margin-left:8px;font-weight:700;font-size:13px;color:#666">Idle</div></div>
+    <div style="margin-top:8px;font-size:12px;color:#5a5a5a">Click Listen and speak — the robot will reply.</div>
+  </div>
+
   <div class="menu-card">
     <div class="menu-label">Cuteness</div>
     <div class="menu-row"><button class="btn" id="playBtn">Play</button><button class="btn ghost" id="surpriseBtn">Surprise</button></div>
     <div style="margin-top:8px;font-size:12px;color:#5a5a5a">Click or tap the eyes to make them react.</div>
   </div>
+
 </aside>
 
 <div class="container">
-  <main class="robot">
+  <main class="robot" id="robotMain">
     <div class="eyes" id="eyesRow">
-      <div class="eye-wrap" data-side="left">
+      <div id="chatBubble" class="chat-bubble" aria-live="polite"></div>
+
+      <div class="eye-wrap" data-side="left" tabindex="0">
         <div class="eye-glow" style="background:radial-gradient(circle,#fff9d6 0%,transparent 40%);"></div>
         <svg class="eye-svg eye normal" viewBox="0 0 100 100" role="img" aria-label="Left eye">
           <rect x="6" y="18" rx="22" ry="22" width="88" height="64" fill="#000"/>
@@ -116,7 +287,8 @@ body{
           </g>
         </svg>
       </div>
-      <div class="eye-wrap" data-side="right">
+
+      <div class="eye-wrap" data-side="right" tabindex="0">
         <div class="eye-glow" style="background:radial-gradient(circle,#fff9d6 0%,transparent 40%);"></div>
         <svg class="eye-svg eye normal" viewBox="0 0 100 100" role="img" aria-label="Right eye">
           <rect x="6" y="18" rx="22" ry="22" width="88" height="64" fill="#000"/>
@@ -127,14 +299,15 @@ body{
         </svg>
       </div>
     </div>
+
     <div class="hint">Click the eyes to play — Time and temp shown in menu</div>
     <div style="margin-top:10px;font-size:13px;color:#222">Mode: <span id="modeLabel" style="font-weight:700">Normal</span></div>
   </main>
 </div>
 
 <div class="mobile-top" id="mobileTop">
-  <div id="mobileTime">--:--</
-<div id="mobileTemp">—</div>
+  <div id="mobileTime">--:--</div>
+  <div id="mobileTemp">—</div>
 </div>
 
 <div class="mobile-toggle" id="mobileToggle">☰</div>
@@ -151,6 +324,39 @@ body{
       <div style="font-size:11px;color:#666;text-transform:uppercase">Temperature</div>
       <div style="font-weight:800;font-size:18px" id="mobileTempBig">—</div>
     </div>
+
+    <div style="background:#fff7e3;padding:12px;border-radius:12px">
+      <div style="font-size:11px;color:#666;text-transform:uppercase">Date</div>
+      <div style="font-weight:800;font-size:18px" id="mobileDateBig">—</div>
+    </div>
+
+    <div style="background:#fff7e3;padding:12px;border-radius:12px">
+      <div style="font-size:11px;color:#666;text-transform:uppercase">Location</div>
+      <div style="font-weight:800;font-size:18px" id="mobileLocationBig">—</div>
+    </div>
+
+    <div style="background:#fff7e3;padding:12px;border-radius:12px">
+      <div style="font-size:11px;color:#666;text-transform:uppercase">Weather</div>
+      <div style="font-weight:800;font-size:18px" id="mobileWeatherBig">—</div>
+    </div>
+
+    <div style="background:#fff7e3;padding:12px;border-radius:12px">
+      <div style="font-size:11px;color:#666;text-transform:uppercase">Battery</div>
+      <div style="font-weight:800;font-size:18px;display:flex;align-items:center;gap:8px;">
+        <div class="battery" aria-hidden="true"><div id="mobileBatteryFill" class="battery-fill"></div></div>
+        <div id="mobileBatteryBig">—</div>
+      </div>
+    </div>
+        <div style="background:#fff7e3;padding:12px;border-radius:12px">
+      <div style="font-size:11px;color:#666;text-transform:uppercase">Voice</div>
+      <div style="display:flex;align-items:center;gap:8px;margin-top:8px;">
+        <button class="btn" id="mobVoiceBtn">Listen</button>
+        <div id="mobVoiceStatus" style="font-weight:700;font-size:13px;color:#666">Idle</div>
+      </div>
+      <div style="margin-top:8px;font-size:12px;color:#5a5a5a">Tap Listen and speak — the robot will reply.</div>
+    </div>
+
+
     <div style="background:#fff7e3;padding:12px;border-radius:12px">
       <div style="font-size:11px;color:#666;text-transform:uppercase">Cuteness</div>
       <div style="display:flex;gap:8px;margin-top:8px">
@@ -165,11 +371,12 @@ body{
 <audio id="eyeSound" src="https://freesound.org/data/previews/256/256113_3263906-lq.mp3" preload="auto"></audio>
 
 <script>
-// ---------- Variables ----------
+/* ========== Variables ========== */
 const eyeModes=['normal','wink','hearts','surprised','sleepy'];
 const eyeModeNames=['Normal','Wink','Hearts','Surprised','Sleepy'];
 let modeIndex=0;
-
+const mobVoiceBtn = document.getElementById('mobVoiceBtn');
+const mobVoiceStatus = document.getElementById('mobVoiceStatus'); 
 const sideMenu=document.getElementById('sideMenu');
 const desktopToggle=document.getElementById('desktopToggle');
 const playBtn=document.getElementById('playBtn');
@@ -187,8 +394,22 @@ const mobileTempBig=document.getElementById('mobileTempBig');
 const mobileToggle=document.getElementById('mobileToggle');
 const bottomSheet=document.getElementById('bottomSheet');
 const eyeSound=document.getElementById('eyeSound');
+const chatBubble = document.getElementById('chatBubble');
 
-// ---------- Clock ----------
+const dateText = document.getElementById('dateText');
+const mobileDateBig = document.getElementById('mobileDateBig');
+const locationText = document.getElementById('locationText');
+const mobileLocationBig = document.getElementById('mobileLocationBig');
+
+const batteryText = document.getElementById('batteryText');
+const batteryFill = document.getElementById('batteryFill');
+const mobileBatteryBig = document.getElementById('mobileBatteryBig');
+const mobileBatteryFill = document.getElementById('mobileBatteryFill');
+
+const voiceBtn = document.getElementById('voiceBtn');
+const voiceStatus = document.getElementById('voiceStatus');
+
+/* ========== Clock & Date & Theme (day/night) ========== */
 function updateClock(){
   const now=new Date();
   const hh=String(now.getHours()).padStart(2,'0');
@@ -198,32 +419,130 @@ function updateClock(){
   timeText.textContent=timeStr;
   timeMobile.textContent=`${hh}:${mm}`;
   timeMobileBig.textContent=timeStr;
+
+  // Date (full, english)
+  const dateOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+  const dateStr = now.toLocaleDateString('en-US', dateOptions);
+  dateText.textContent = dateStr;
+  mobileDateBig.textContent = dateStr;
+
+  // Day/Night theme: consider night from 18 to 6
+  const hour = now.getHours();
+  const isNight = (hour < 6 || hour >= 18);
+  if(isNight){
+    document.documentElement.classList.add('night');
+  } else {
+    document.documentElement.classList.remove('night');
+  }
 }
 updateClock();
 setInterval(updateClock,1000);
 
-// ---------- Temperature ----------
+/* ========== Temperature & Weather & Location ========== */
 function showTemp(val){
   const t=val===null?'—':val+'°C';
   tempText.textContent=t;
   mobileTemp.textContent=t;
   mobileTempBig.textContent=t;
 }
-function fetchTempByGeo(){
-  if(!navigator.geolocation) return showTemp(null);
+async function fetchWeatherAndLocation(){
+  if(!navigator.geolocation) {
+    showTemp(null);
+    locationText.textContent = 'Unknown';
+    mobileLocationBig.textContent = 'Unknown';
+    return;
+  }
   navigator.geolocation.getCurrentPosition(async pos=>{
     const lat=pos.coords.latitude, lon=pos.coords.longitude;
     try{
-      const res=await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&temperature_unit=celsius`);
-      const data=await res.json();
-      showTemp(data?.current_weather?.temperature?Math.round(data.current_weather.temperature):null);
-    }catch(e){showTemp(null);}
-  },()=>showTemp(null),{timeout:8000});
-}
-fetchTempByGeo();
-setInterval(fetchTempByGeo,10*60*1000);
+      // temperature & weather
+      const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&temperature_unit=celsius`);
+      const data = await res.json();
+      const temp = data?.current_weather?.temperature ?? null;
+      showTemp(temp !== null ? Math.round(temp) : null);
 
-// ---------- Eye Functions ----------
+      const weatherCode = data?.current_weather?.weathercode;
+      const weatherMap = {
+        0: "Clear ☀️",
+        1: "Mainly clear 🌤",
+        2: "Cloudy ☁️",
+        3: "Overcast ☁️",
+        45: "Fog 🌫",
+        48: "Depositing rime fog 🌫",
+        51: "Drizzle 🌦",
+        61: "Rain 🌧",
+        71: "Snow ❄️",
+        95: "Thunder ⛈"
+      };
+      const desc = weatherMap[weatherCode] || "—";
+      document.getElementById('weatherText').textContent = desc;
+      document.getElementById('mobileWeatherBig').textContent = desc;
+
+      // reverse geocoding (Open-Meteo geocoding API)
+      try{
+        const geo = await fetch(`https://geocoding-api.open-meteo.com/v1/reverse?latitude=${lat}&longitude=${lon}`);
+        const geoData = await geo.json();
+        const place = (geoData?.name ? `${geoData.name}` : '') + (geoData?.country ? (geoData.name ? (', ' + geoData.country) : geoData.country) : '');
+        const locStr = place || `${lat.toFixed(2)}, ${lon.toFixed(2)}`;
+        locationText.textContent = locStr;
+        mobileLocationBig.textContent = locStr;
+      }catch(e){
+        locationText.textContent = `${lat.toFixed(2)}, ${lon.toFixed(2)}`;
+        mobileLocationBig.textContent = `${lat.toFixed(2)}, ${lon.toFixed(2)}`;
+      }
+    }catch(e){
+      showTemp(null);
+      document.getElementById('weatherText').textContent = "—";
+      document.getElementById('mobileWeatherBig').textContent = "—";
+    }
+  }, ()=>{
+    showTemp(null);
+    locationText.textContent = 'Permission denied';
+    mobileLocationBig.textContent = 'Permission denied';
+  },{timeout:10000});
+}
+fetchWeatherAndLocation();
+setInterval(fetchWeatherAndLocation, 30 * 60 * 1000);
+
+/* ========== Battery (percent + graphical) ========== */
+if ('getBattery' in navigator) {
+  navigator.getBattery().then(battery => {
+    function updateBattery() {
+      const levelNum = Math.round(battery.level * 100);
+      const level = levelNum + '%';
+      // if element exists (desktop)
+      const bt = document.getElementById('batteryText');
+      if(bt) bt.textContent = level;
+      if(batteryFill) batteryFill.style.width = `${levelNum}%`;
+      if(mobileBatteryFill) mobileBatteryFill.style.width = `${levelNum}%`;
+      if(mobileBatteryBig) mobileBatteryBig.textContent = level;
+      if(typeof levelNum === 'number'){
+        if(levelNum <= 20){
+          if(batteryFill) batteryFill.style.background = 'linear-gradient(90deg,#fb7185,#ef4444)';
+          if(mobileBatteryFill) mobileBatteryFill.style.background = 'linear-gradient(90deg,#fb7185,#ef4444)';
+        } else if(levelNum <= 50){
+          if(batteryFill) batteryFill.style.background = 'linear-gradient(90deg,#fbbf24,#f97316)';
+          if(mobileBatteryFill) mobileBatteryFill.style.background = 'linear-gradient(90deg,#fbbf24,#f97316)';
+        } else {
+          if(batteryFill) batteryFill.style.background = 'linear-gradient(90deg,#4ade80,#16a34a)';
+          if(mobileBatteryFill) mobileBatteryFill.style.background = 'linear-gradient(90deg,#4ade80,#16a34a)';
+        }
+      }
+    }
+    updateBattery();
+    battery.addEventListener('levelchange', updateBattery);
+    battery.addEventListener('chargingchange', updateBattery);
+  });
+} else {
+  // fallback
+  const bt = document.getElementById('batteryText');
+  if(bt) bt.textContent = "N/A";
+  if(mobileBatteryBig) mobileBatteryBig.textContent = "N/A";
+  if(batteryFill) batteryFill.style.width = '0%';
+  if(mobileBatteryFill) mobileBatteryFill.style.width = '0%';
+}
+
+/* ========== Eye Functions ========== */
 function setEyes(idx){
   modeIndex=idx%eyeModes.length;
   const mode=eyeModes[modeIndex];
@@ -247,9 +566,9 @@ function flashWobble(){
     setTimeout(()=>svg.style.transform='',260);
   });
 }
-function playSound(){eyeSound.currentTime=0;eyeSound.play();}
+function playSound(){ try{ eyeSound.currentTime=0; eyeSound.play(); }catch(e){} }
 
-// ---------- Hint ----------
+/* ========== Hint ========== */
 const hintEl=document.querySelector('.hint');
 let hintTimer=null;
 function hideHint(){
@@ -258,20 +577,21 @@ function hideHint(){
   hintTimer=setTimeout(()=>hintEl.style.opacity='1',15000);
 }
 
-// ---------- Event Listeners ----------
+/* ========== Event Listeners ========== */
 eyeWraps.forEach(w=>{
   w.addEventListener('click', ()=>{nextEye(); playSound(); hideHint();});
   w.addEventListener('keydown', e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault(); nextEye(); playSound(); hideHint();}});
 });
-playBtn.addEventListener('click', ()=>{nextEye(); flashWobble(); playSound();});
-mobPlay.addEventListener('click', ()=>{nextEye(); flashWobble(); playSound();});
-surpriseBtn.addEventListener('click', ()=>{randomEye(); flashWobble(); playSound();});
-mobSurprise.addEventListener('click', ()=>{randomEye(); flashWobble(); playSound();});
+playBtn && playBtn.addEventListener('click', ()=>{nextEye(); flashWobble(); playSound();});
+mobPlay && mobPlay.addEventListener('click', ()=>{nextEye(); flashWobble(); playSound();});
+surpriseBtn && surpriseBtn.addEventListener('click', ()=>{randomEye(); flashWobble(); playSound();});
+mobSurprise && mobSurprise.addEventListener('click', ()=>{randomEye(); flashWobble(); playSound();});
 
 desktopToggle.addEventListener('click', ()=>{const open=sideMenu.classList.toggle('open');sideMenu.setAttribute('aria-hidden',String(!open));});
 mobileToggle.addEventListener('click', ()=>{const open=bottomSheet.classList.toggle('open');bottomSheet.setAttribute('aria-hidden',String(!open));});
-document.getElementById('mobileTop').addEventListener('click', ()=>{updateClock(); fetchTempByGeo();});
+document.getElementById('mobileTop').addEventListener('click', ()=>{updateClock(); fetchWeatherAndLocation();});
 
+/* Close bottom sheet on outside click */
 window.addEventListener('click', (e)=>{
   if(bottomSheet.classList.contains('open') && !bottomSheet.contains(e.target) && !mobileToggle.contains(e.target)){
     bottomSheet.classList.remove('open');
@@ -279,12 +599,208 @@ window.addEventListener('click', (e)=>{
   }
 });
 
-// ---------- Responsive ----------
+/* Responsive */
 function adaptUI(){desktopToggle.style.display=window.innerWidth>=1024?'flex':'none';}
 adaptUI();
 window.addEventListener('resize', adaptUI);
+
+/* ========== Chat Bubble (periodic + speech replies) ========== */
+const chatMessages = [
+  "Hello there!",
+  "How are you today?",
+  "Nice to see you 😄",
+  "I love sunshine!",
+  "Let's play together!",
+  "What a great day!",
+  "Keep smiling 😊",
+  "Did you blink?",
+  "Beep boop 🤖",
+  "Stay awesome!"
+];
+function showChat(msg, duration=3000){
+  if(!chatBubble) return;
+  chatBubble.textContent = msg;
+  chatBubble.classList.add('show');
+  setTimeout(()=> chatBubble.classList.remove('show'), duration);
+}
+// periodic (background) messages every 7s
+setInterval(()=> {
+  if(!chatBubble.classList.contains('show')){
+    const msg = chatMessages[Math.floor(Math.random()*chatMessages.length)];
+    showChat(msg, 3000);
+  }
+}, 7000);
+
+/* ========== Eye Follow Mouse (with click fix) ========== */
+const pupils = document.querySelectorAll('.pupil');
+let followEnabled = true; // active follow
+
+document.addEventListener('mousemove', e => {
+  if (!followEnabled) return;
+  const rect = document.querySelector('.robot').getBoundingClientRect();
+  const centerX = rect.left + rect.width / 2;
+  const centerY = rect.top + rect.height / 2;
+
+  const dx = e.clientX - centerX;
+  const dy = e.clientY - centerY;
+
+  const maxMove = 14;
+  const angle = Math.atan2(dy, dx);
+  const moveX = Math.cos(angle) * maxMove;
+  const moveY = Math.sin(angle) * maxMove;
+
+  pupils.forEach(p => {
+    p.style.transform = `translate(${moveX}px, ${moveY}px) scale(1)`;
+  });
+});
+
+// mouse leaves window -> center pupils
+document.addEventListener('mouseleave', () => {
+  if (!followEnabled) return;
+  pupils.forEach(p => {
+    p.style.transform = 'translate(0, 0) scale(1)';
+  });
+});
+
+// clicks temporarily disable follow for animations
+eyeWraps.forEach(w => {
+  w.addEventListener('click', () => {
+    followEnabled = false;
+    pupils.forEach(p => p.style.transform = 'translate(0,0) scale(1)');
+    setTimeout(() => followEnabled = true, 1000);
+  });
+});
+
+/* ========== Blinking (natural) ========== */
+function blinkOnce(){
+  const prev = modeIndex;
+  setEyes(1); // wink
+  pupils.forEach(p => p.style.transform = 'translate(0,0) scale(1)');
+  setTimeout(()=> setEyes(prev), 220);
+}
+// random blink every 3-7 seconds
+setInterval(()=>{
+  if(!chatBubble.classList.contains('show')) {
+    blinkOnce();
+  }
+}, 4000 + Math.random()*3000);
+
+/* ========== Voice Recognition (speech -> show user text -> bot reply) ========== */
+let recognition = null;
+if ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window) {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  recognition = new SR();
+  recognition.lang = 'en-US';
+  recognition.interimResults = false;
+  recognition.maxAlternatives = 1;
+
+  recognition.addEventListener('start', ()=> {
+    voiceStatus.textContent = 'Listening...';
+    voiceBtn.textContent = 'Stop';
+  });
+
+  recognition.addEventListener('end', ()=> {
+    voiceStatus.textContent = 'Idle';
+    voiceBtn.textContent = 'Listen';
+  });
+
+  recognition.addEventListener('result', (ev)=> {
+    const transcript = ev.results[0][0].transcript;
+    // Show user's phrase
+    showChat(`You: ${transcript}`, 2500);
+
+    // temporarily stop follow to ensure reply animation visible
+    followEnabled = false;
+    setTimeout(()=> {
+      // robot replies with a simple random reply
+      const replies = ["Got it!", "Nice!", "Thanks for telling me!", "Cool!", "I hear you!"];
+      const r = replies[Math.floor(Math.random()*replies.length)];
+      showChat(r, 3000);
+      // small eye reaction
+      setEyes(3); // surprised
+      flashWobble();
+      setTimeout(()=> {
+        setEyes(0);
+        followEnabled = true;
+      }, 900);
+    }, 800);
+  });
+
+  recognition.addEventListener('error', (e)=> {
+    voiceStatus.textContent = 'Error';
+    setTimeout(()=> voiceStatus.textContent = 'Idle', 1200);
+  });
+} else {
+  // SpeechRecognition not supported
+  voiceStatus.textContent = 'Not supported';
+  if(voiceBtn){ voiceBtn.disabled = true; voiceBtn.style.opacity = 0.5; }
+  console.warn("Speech Recognition not supported in this browser.");
+}
+
+// button toggle for voice recognition
+if(voiceBtn){
+  voiceBtn.addEventListener('click', () => {
+    // ====== Mobile Voice Button ======
+if(mobVoiceBtn){
+  mobVoiceBtn.addEventListener('click', () => {
+    if (!recognition) return;
+    if (mobVoiceStatus.textContent === 'Listening...') {
+      recognition.stop();
+    } else {
+      try {
+        recognition.start();
+        mobVoiceStatus.textContent = 'Listening...';
+        mobVoiceBtn.textContent = 'Stop';
+      } catch(e) {
+        console.warn('Recognition start error', e);
+      }
+    }
+  });
+
+  if(recognition){
+    recognition.addEventListener('start', ()=> {
+      mobVoiceStatus.textContent = 'Listening...';
+      mobVoiceBtn.textContent = 'Stop';
+    });
+    recognition.addEventListener('end', ()=> {
+      mobVoiceStatus.textContent = 'Idle';
+      mobVoiceBtn.textContent = 'Listen';
+    });
+    recognition.addEventListener('error', ()=> {
+      mobVoiceStatus.textContent = 'Error';
+      setTimeout(()=> mobVoiceStatus.textContent = 'Idle', 1200);
+    });
+  } else {
+    mobVoiceStatus.textContent = 'Not supported';
+    mobVoiceBtn.disabled = true;
+    mobVoiceBtn.style.opacity = 0.5;
+  }
+}
+
+    if (!recognition) return;
+    if (voiceStatus.textContent === 'Listening...') {
+      recognition.stop();
+    } else {
+      try {
+        recognition.start();
+      } catch(e) {
+        // some browsers throw if start called rapidly - handle gracefully
+        console.warn('Recognition start error', e);
+      }
+    }
+  });
+}
+
+/* ========== Small accessibility & safety tweaks ========== */
+// ensure essential elements exist before usage
+if (!chatBubble) {
+  console.warn('chatBubble not found');
+}
+
+
+
+
+/* ========== End of script ========= */
 </script>
 </body>
-</html>
-
-
+</html>  
